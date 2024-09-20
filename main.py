@@ -230,9 +230,10 @@ def save_to_pdf(cards, output_file):
     env = Environment(loader=FileSystemLoader("."))
     template = env.get_template("template.html")
 
-    template_vars = {"body": "test"}
-
-    html_string = template.render(template_vars)
+    html_string = ""
+    for card in cards:
+        template_vars = {"body": card.card_type}
+        html_string += template.render(template_vars)
 
     print("------------------ HTML String ------------------")
     print(html_string)
