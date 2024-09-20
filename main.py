@@ -5,19 +5,46 @@ import re
 
 
 class QuizCard:
-    # QuizCard class represents a single quiz card with various fields
+    """
+    A class to represent a quiz card extracted from the PDF.
+
+    Attributes:
+        card_type (str): The type of the card (e.g., SIT).
+        ref (str): The reference or verse associated with the card.
+        extra_info (str): Any additional information for SIT questions.
+        club (str): The club or group associated with the card.
+        question (str): The question text of the card.
+        answer (str): The answer to the question.
+    """
+
     def __init__(
         self, card_type="", ref="", extra_info="", club="", question="", answer=""
     ):
-        self.card_type = card_type  # Type of the card (e.g., SIT)
-        self.ref = ref  # Reference (e.g., verse or source)
-        self.extra_info = extra_info  # Additional information for SIT questions
-        self.club = club  # Club information (if available)
-        self.question = question  # The actual question text
-        self.answer = answer  # The answer to the question
+        """
+        Initializes a QuizCard object with default empty values for each field.
+
+        Args:
+            card_type (str): The type of the card.
+            ref (str): The reference for the card.
+            extra_info (str): Extra information, mostly for SIT questions.
+            club (str): Club information (if available).
+            question (str): The question text.
+            answer (str): The answer text.
+        """
+        self.card_type = card_type
+        self.ref = ref
+        self.extra_info = extra_info
+        self.club = club
+        self.question = question
+        self.answer = answer
 
     def __str__(self):
-        # String representation for debugging and displaying the card
+        """
+        Returns a string representation of the QuizCard object for debugging.
+
+        Returns:
+            str: A formatted string representation of the QuizCard's fields.
+        """
         return (
             f"Type: {self.card_type}\n"
             f"Ref: {self.ref}\n"
@@ -28,7 +55,12 @@ class QuizCard:
         )
 
     def to_dict(self):
-        # Convert the QuizCard into a dictionary to output as CSV
+        """
+        Converts the QuizCard object to a dictionary for CSV output.
+
+        Returns:
+            dict: A dictionary representation of the QuizCard object.
+        """
         return {
             "Type": self.card_type.strip(),
             "Ref": self.ref.strip(),
@@ -40,18 +72,29 @@ class QuizCard:
 
 
 def parse_pdf(file_path):
-    # Main function to parse the PDF and extract quiz cards
-    cards = []  # List to store all the parsed QuizCards
-    current_card = QuizCard()  # Initialize a new QuizCard
-    current_field = None  # Track which field is currently being populated
+    """
+    Parses a PDF file and extracts quiz cards from it.
+
+    The function handles PDFs with two columns of text. It processes each page
+    and splits the text into words. Fields like 'Type:', 'Ref:', 'Club:',
+    'Question:', and 'Answer:' are identified, and words are appended to the
+    correct fields in a QuizCard object.
+
+    Args:
+        file_path (str): The path to the PDF file to be parsed.
+
+    Returns:
+        list: A list of QuizCard objects extracted from the PDF.
+    """
+    cards = []
+    current_card = QuizCard()
+    current_field = None
 
     with pdfplumber.open(file_path) as pdf:
         for page in pdf.pages:
-            for i in range(2):  # Assuming two columns in each page
-                x0 = i * (page.width / 2)  # Left boundary for each column
-                x1 = (i + 1) * (page.width / 2)  # Right boundary for each column
-
-                # Extract text from each column
+            for i in range(2):  # Assuming there are two columns
+                x0 = i * (page.width / 2)  # Left column boundary
+                x1 = (i + 1) * (page.width / 2)  # Right column boundary
                 text = page.within_bbox((x0, 0, x1, page.height)).extract_text()
 
                 if text:
@@ -66,9 +109,9 @@ def parse_pdf(file_path):
 
                             for word in words:
                                 # Detect and handle different fields based on headers
-
                                 if word.startswith("Type:"):
-                                    # Start of a new card detected, save the previous card if it's valid
+                                    # Start of a new card detected, save the
+                                    # previous card if it's valid
                                     if (
                                         current_card.card_type
                                         and current_card.ref
@@ -94,9 +137,13 @@ def parse_pdf(file_path):
                                 elif current_field == "ref" and re.compile(
                                     r"\d+:\d+"
                                 ).search(word):
-                                    # Detect end of the reference field based on a regex that matches a verse format (e.g., 5:22)
+                                    # Detect end of the reference field based
+                                    # on a regex that matches a verse format
+                                    # (e.g., 5:22)
                                     current_card.ref += " " + word
-                                    # Switch to the extra_info field for capturing additional data
+                                    # Switch to the extra_info field for
+                                    # capturing additional data for SIT
+                                    # questions
                                     current_field = "extra_info"
 
                                 elif word.startswith("Club"):
@@ -117,8 +164,9 @@ def parse_pdf(file_path):
                                     current_card.answer = word[len("Answer:") :].strip()
 
                                 else:
-                                    # If it's just a word, append it to the current field
-                                    # This handles multi-word fields like questions or answers
+                                    # If it's just a word, append it to the
+                                    # current field. This handles multi-word
+                                    # fields like questions or answers
                                     if current_field == "type":
                                         current_card.card_type += " " + word
                                     elif current_field == "ref":
@@ -148,8 +196,13 @@ def parse_pdf(file_path):
 
 
 def save_to_csv(cards, output_file):
-    """Save the list of QuizCards to a CSV file."""
-    # Open the CSV file in write mode
+    """
+    Saves the list of QuizCards to a CSV file.
+
+    Args:
+        cards (list): The list of QuizCard objects to be written to the CSV file.
+        output_file (str): The path to the output CSV file.
+    """
     with open(output_file, mode="w", newline="", encoding="utf-8") as csvfile:
         # Define the fieldnames for the CSV columns
         fieldnames = ["Type", "Ref", "Extra Info", "Club", "Question", "Answer"]
@@ -164,7 +217,13 @@ def save_to_csv(cards, output_file):
 
 
 def main():
-    # Set up the argument parser to accept input and output files
+    """
+    Main function to parse a PDF file and save the extracted quiz cards to a CSV.
+
+    This function handles the command-line arguments for input and output file paths.
+    It uses the parse_pdf() function to extract quiz cards from the PDF and
+    save_to_csv() to write them to a CSV file.
+    """
     parser = argparse.ArgumentParser(description="Parse quiz cards from a PDF file.")
     parser.add_argument("--in_file", "-i", required=True, help="Input PDF file path")
     parser.add_argument("--out_file", "-o", required=True, help="Output CSV file path")
