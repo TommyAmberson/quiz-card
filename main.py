@@ -12,11 +12,11 @@ class QuizCard:
 
     def __str__(self):
         return (
-            f"Type: {self.card_type.strip()}\n"
-            f"Ref: {self.ref.strip()}\n"
-            f"Club: {self.club.strip()}\n"
-            f"Q: {self.question.strip()}\n"
-            f"A: {self.answer.strip()}\n"
+            f"Type: {self.card_type}\n"
+            f"Ref: {self.ref}\n"
+            f"Club: {self.club}\n"
+            f"Q: {self.question}\n"
+            f"A: {self.answer}\n"
         )
 
 
