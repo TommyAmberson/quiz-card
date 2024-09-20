@@ -58,8 +58,14 @@ def parse_pdf(file_path):
                             # Tokenize the line into words
                             words = line.split()
                             for word in words:
-                                # Check for header keywords
-                                if word.startswith("Type:"):
+                                # Check for header keywords and set the
+                                # current_field so that subsequent words are
+                                # added to the right field.
+
+                                if word.startswith(
+                                    "Type:"
+                                ):  # Check for "Type:". This starts a card
+
                                     # Save the current card before starting a new one
                                     if (
                                         current_card.card_type
@@ -76,34 +82,41 @@ def parse_pdf(file_path):
                                         len("Type:") :
                                     ].strip()
 
-                                elif word.startswith("Ref:"):
+                                elif word.startswith("Ref:"):  # Check for "Ref:".
                                     current_field = "ref"
                                     current_card.ref = word[len("Ref:") :].strip()
 
                                 elif current_field == "ref" and (
                                     re.compile(r"\d+:\d+").search(word)
-                                ):
+                                ):  # Becuase the extra_info does not have a
+                                    # header we need to search for the last
+                                    # word of the ref field
+
                                     # This word is the end of the ref field
                                     current_card.ref += " " + word
 
                                     # Next part is extra_info
                                     current_field = "extra_info"
 
-                                elif word.startswith("Club"):
+                                elif word.startswith(
+                                    "Club"
+                                ):  # Check for "Club". Note the absense of a ":"
                                     current_field = "club"
                                     current_card.club = word[len("Club") :].strip()
 
-                                elif word.startswith("Question:"):
+                                elif word.startswith(
+                                    "Question:"
+                                ):  # Check for "Question:".
                                     current_field = "question"
                                     current_card.question = word[
                                         len("Question:") :
                                     ].strip()
 
-                                elif word.startswith("Answer:"):
+                                elif word.startswith("Answer:"):  # Check for "Answer:".
                                     current_field = "answer"
                                     current_card.answer = word[len("Answer:") :].strip()
 
-                                else:
+                                else:  # just a normal word
                                     # Add word to the current field
                                     if current_field == "type":
                                         current_card.card_type += (
