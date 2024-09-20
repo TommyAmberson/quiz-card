@@ -129,7 +129,7 @@ def save_to_csv(cards, output_file):
     """Save the list of QuizCards to a CSV file."""
     with open(output_file, mode="w", newline="", encoding="utf-8") as csvfile:
         fieldnames = ["Type", "Ref", "Club", "Question", "Answer"]
-        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames, quoting=csv.QUOTE_ALL)
 
         writer.writeheader()
         for card in cards:
