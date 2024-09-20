@@ -1,4 +1,5 @@
 import argparse
+import csv
 import pdfplumber
 import re
 
@@ -19,6 +20,16 @@ class QuizCard:
             f"Q: {self.question}\n"
             f"A: {self.answer}\n"
         )
+
+    def to_dict(self):
+        """Convert the QuizCard to a dictionary for CSV output."""
+        return {
+            "Type": self.card_type.strip(),
+            "Ref": self.ref.strip(),
+            "Club": self.club.strip(),
+            "Question": self.question.strip(),
+            "Answer": self.answer.strip(),
+        }
 
 
 def parse_pdf(file_path):
@@ -109,25 +120,40 @@ def parse_pdf(file_path):
     ):
         cards.append(current_card)
     else:
-        print(f"Uncomplete card: {current_card}")
+        print(f"Incomplete card: {current_card}")
 
     return cards
+
+
+def save_to_csv(cards, output_file):
+    """Save the list of QuizCards to a CSV file."""
+    with open(output_file, mode="w", newline="", encoding="utf-8") as csvfile:
+        fieldnames = ["Type", "Ref", "Club", "Question", "Answer"]
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+
+        writer.writeheader()
+        for card in cards:
+            writer.writerow(card.to_dict())
 
 
 def main():
     # Set up the argument parser
     parser = argparse.ArgumentParser(description="Parse quiz cards from a PDF file.")
     parser.add_argument("--in_file", "-i", required=True, help="Input PDF file path")
+    parser.add_argument("--out_file", "-o", required=True, help="Output CSV file path")
     args = parser.parse_args()
 
-    # Get the file path from the command-line arguments
-    file_path = args.in_file
+    # Get the file paths from the command-line arguments
+    input_file = args.in_file
+    output_file = args.out_file
 
-    # Parse the PDF and print the cards
-    cards = parse_pdf(file_path)
+    # Parse the PDF
+    cards = parse_pdf(input_file)
 
-    for card in cards:
-        print(card)
+    # Save the parsed cards to a CSV file
+    save_to_csv(cards, output_file)
+
+    print(f"Saved {len(cards)} quiz cards to {output_file}")
 
 
 if __name__ == "__main__":
