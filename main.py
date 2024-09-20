@@ -1,8 +1,10 @@
+from jinja2 import Environment, FileSystemLoader
 import argparse
 import csv
+import os
+import pdfkit
 import pdfplumber
 import re
-import os
 
 
 class QuizCard:
@@ -219,14 +221,39 @@ def save_to_csv(cards, output_file):
 
 def save_to_pdf(cards, output_file):
     """
-    TODO: Save the list of QuizCards to a reformatted PDF file.
+    Save the list of QuizCards to a reformatted PDF file.
 
     Args:
         cards (list): The list of QuizCard objects to be written to the PDF file.
         output_file (str): The path to the output PDF file.
     """
-    # Placeholder for future implementation of PDF formatting
-    print("TODO: Implement PDF output")
+    env = Environment(loader=FileSystemLoader("."))
+    template = env.get_template("template.html")
+
+    template_vars = {"body": "test"}
+
+    html_string = template.render(template_vars)
+
+    print("------------------ HTML String ------------------")
+    print(html_string)
+
+    options = {
+        "page-size": "A4",
+        "margin-top": "0.75in",
+        "margin-right": "0.75in",
+        "margin-bottom": "0.75in",
+        "margin-left": "0.75in",
+        "encoding": "UTF-8",
+        "enable-local-file-access": None,
+        "no-outline": None,
+    }
+
+    print("\n------------ Converting HTML to PDF -------------")
+    pdfkit.from_string(
+        html_string,
+        output_file,
+        options=options,
+    )
 
 
 def check_output_extension(output_file, output_type):
