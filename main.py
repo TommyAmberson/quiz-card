@@ -5,18 +5,19 @@ import re
 
 
 class QuizCard:
+    # QuizCard class represents a single quiz card with various fields
     def __init__(
         self, card_type="", ref="", extra_info="", club="", question="", answer=""
     ):
-        self.card_type = card_type
-        self.ref = ref
-        # Extra information for SIT questions
-        self.extra_info = extra_info
-        self.club = club
-        self.question = question
-        self.answer = answer
+        self.card_type = card_type  # Type of the card (e.g., SIT)
+        self.ref = ref  # Reference (e.g., verse or source)
+        self.extra_info = extra_info  # Additional information for SIT questions
+        self.club = club  # Club information (if available)
+        self.question = question  # The actual question text
+        self.answer = answer  # The answer to the question
 
     def __str__(self):
+        # String representation for debugging and displaying the card
         return (
             f"Type: {self.card_type}\n"
             f"Ref: {self.ref}\n"
@@ -27,7 +28,7 @@ class QuizCard:
         )
 
     def to_dict(self):
-        """Convert the QuizCard to a dictionary for CSV output."""
+        # Convert the QuizCard into a dictionary to output as CSV
         return {
             "Type": self.card_type.strip(),
             "Ref": self.ref.strip(),
@@ -39,111 +40,99 @@ class QuizCard:
 
 
 def parse_pdf(file_path):
-    cards = []
-    current_card = QuizCard()
-    current_field = None
+    # Main function to parse the PDF and extract quiz cards
+    cards = []  # List to store all the parsed QuizCards
+    current_card = QuizCard()  # Initialize a new QuizCard
+    current_field = None  # Track which field is currently being populated
 
     with pdfplumber.open(file_path) as pdf:
         for page in pdf.pages:
-            for i in range(2):  # Assuming there are two columns
-                x0 = i * (page.width / 2)
-                x1 = (i + 1) * (page.width / 2)
+            for i in range(2):  # Assuming two columns in each page
+                x0 = i * (page.width / 2)  # Left boundary for each column
+                x1 = (i + 1) * (page.width / 2)  # Right boundary for each column
+
+                # Extract text from each column
                 text = page.within_bbox((x0, 0, x1, page.height)).extract_text()
 
                 if text:
+                    # Split the column's text into lines
                     lines = text.splitlines()
+
+                    # Loop through each line in the extracted text
                     for line in lines:
-                        line = line.strip()
+                        line = line.strip()  # Remove extra whitespace
                         if line:  # Ignore empty lines
-                            # Tokenize the line into words
-                            words = line.split()
+                            words = line.split()  # Split line into individual words
+
                             for word in words:
-                                # Check for header keywords and set the
-                                # current_field so that subsequent words are
-                                # added to the right field.
+                                # Detect and handle different fields based on headers
 
-                                if word.startswith(
-                                    "Type:"
-                                ):  # Check for "Type:". This starts a card
-
-                                    # Save the current card before starting a new one
+                                if word.startswith("Type:"):
+                                    # Start of a new card detected, save the previous card if it's valid
                                     if (
                                         current_card.card_type
                                         and current_card.ref
                                         and current_card.question
                                         and current_card.answer
                                     ):
+                                        # Append the current card to the list of cards
                                         cards.append(current_card)
-                                        # Reset for the next card
+                                        # Create a new card for the next one
                                         current_card = QuizCard()
 
+                                    # Set the current field to 'type' and store the type
                                     current_field = "type"
                                     current_card.card_type = word[
                                         len("Type:") :
                                     ].strip()
 
-                                elif word.startswith("Ref:"):  # Check for "Ref:".
+                                elif word.startswith("Ref:"):
+                                    # Reference field detected, prepare to store the reference
                                     current_field = "ref"
                                     current_card.ref = word[len("Ref:") :].strip()
 
-                                elif current_field == "ref" and (
-                                    re.compile(r"\d+:\d+").search(word)
-                                ):  # Becuase the extra_info does not have a
-                                    # header we need to search for the last
-                                    # word of the ref field
-
-                                    # This word is the end of the ref field
+                                elif current_field == "ref" and re.compile(
+                                    r"\d+:\d+"
+                                ).search(word):
+                                    # Detect end of the reference field based on a regex that matches a verse format (e.g., 5:22)
                                     current_card.ref += " " + word
-
-                                    # Next part is extra_info
+                                    # Switch to the extra_info field for capturing additional data
                                     current_field = "extra_info"
 
-                                elif word.startswith(
-                                    "Club"
-                                ):  # Check for "Club". Note the absense of a ":"
+                                elif word.startswith("Club"):
+                                    # Club information detected (Note: "Club" without colon ":")
                                     current_field = "club"
                                     current_card.club = word[len("Club") :].strip()
 
-                                elif word.startswith(
-                                    "Question:"
-                                ):  # Check for "Question:".
+                                elif word.startswith("Question:"):
+                                    # Question field detected, prepare to store the question
                                     current_field = "question"
                                     current_card.question = word[
                                         len("Question:") :
                                     ].strip()
 
-                                elif word.startswith("Answer:"):  # Check for "Answer:".
+                                elif word.startswith("Answer:"):
+                                    # Answer field detected, prepare to store the answer
                                     current_field = "answer"
                                     current_card.answer = word[len("Answer:") :].strip()
 
-                                else:  # just a normal word
-                                    # Add word to the current field
+                                else:
+                                    # If it's just a word, append it to the current field
+                                    # This handles multi-word fields like questions or answers
                                     if current_field == "type":
-                                        current_card.card_type += (
-                                            " " if current_card.card_type else ""
-                                        ) + word
+                                        current_card.card_type += " " + word
                                     elif current_field == "ref":
-                                        current_card.ref += (
-                                            " " if current_card.ref else ""
-                                        ) + word
+                                        current_card.ref += " " + word
                                     elif current_field == "extra_info":
-                                        current_card.extra_info += (
-                                            " " if current_card.extra_info else ""
-                                        ) + word
+                                        current_card.extra_info += " " + word
                                     elif current_field == "club":
-                                        current_card.club += (
-                                            " " if current_card.club else ""
-                                        ) + word
+                                        current_card.club += " " + word
                                     elif current_field == "question":
-                                        current_card.question += (
-                                            " " if current_card.question else ""
-                                        ) + word
+                                        current_card.question += " " + word
                                     elif current_field == "answer":
-                                        current_card.answer += (
-                                            " " if current_card.answer else ""
-                                        ) + word
+                                        current_card.answer += " " + word
 
-    # Save the last card
+    # At the end, save the last card if it's valid
     if (
         current_card.card_type
         and current_card.ref
@@ -152,37 +141,43 @@ def parse_pdf(file_path):
     ):
         cards.append(current_card)
     else:
+        # Print a message if a card was incomplete
         print(f"Incomplete card: {current_card}")
 
-    return cards
+    return cards  # Return the list of parsed quiz cards
 
 
 def save_to_csv(cards, output_file):
     """Save the list of QuizCards to a CSV file."""
+    # Open the CSV file in write mode
     with open(output_file, mode="w", newline="", encoding="utf-8") as csvfile:
+        # Define the fieldnames for the CSV columns
         fieldnames = ["Type", "Ref", "Extra Info", "Club", "Question", "Answer"]
+        # Create a CSV DictWriter object to write dictionaries to the CSV
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames, quoting=csv.QUOTE_ALL)
 
+        # Write the header row
         writer.writeheader()
+        # Write each quiz card as a row in the CSV
         for card in cards:
             writer.writerow(card.to_dict())
 
 
 def main():
-    # Set up the argument parser
+    # Set up the argument parser to accept input and output files
     parser = argparse.ArgumentParser(description="Parse quiz cards from a PDF file.")
     parser.add_argument("--in_file", "-i", required=True, help="Input PDF file path")
     parser.add_argument("--out_file", "-o", required=True, help="Output CSV file path")
     args = parser.parse_args()
 
-    # Get the file paths from the command-line arguments
+    # Get the input and output file paths from command-line arguments
     input_file = args.in_file
     output_file = args.out_file
 
-    # Parse the PDF
+    # Parse the PDF file to extract quiz cards
     cards = parse_pdf(input_file)
 
-    # Save the parsed cards to a CSV file
+    # Save the parsed quiz cards to a CSV file
     save_to_csv(cards, output_file)
 
     print(f"Saved {len(cards)} quiz cards to {output_file}")
