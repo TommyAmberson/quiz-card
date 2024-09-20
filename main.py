@@ -5,9 +5,13 @@ import re
 
 
 class QuizCard:
-    def __init__(self, card_type="", ref="", club="", question="", answer=""):
+    def __init__(
+        self, card_type="", ref="", extra_info="", club="", question="", answer=""
+    ):
         self.card_type = card_type
         self.ref = ref
+        # Extra information for SIT questions
+        self.extra_info = extra_info
         self.club = club
         self.question = question
         self.answer = answer
@@ -16,6 +20,7 @@ class QuizCard:
         return (
             f"Type: {self.card_type}\n"
             f"Ref: {self.ref}\n"
+            f"Extra Info: {self.extra_info}\n"
             f"Club: {self.club}\n"
             f"Q: {self.question}\n"
             f"A: {self.answer}\n"
@@ -26,6 +31,7 @@ class QuizCard:
         return {
             "Type": self.card_type.strip(),
             "Ref": self.ref.strip(),
+            "Extra Info": self.extra_info.strip(),
             "Club": self.club.strip(),
             "Question": self.question.strip(),
             "Answer": self.answer.strip(),
@@ -74,9 +80,18 @@ def parse_pdf(file_path):
                                     current_field = "ref"
                                     current_card.ref = word[len("Ref:") :].strip()
 
+                                elif current_field == "ref" and (
+                                    re.compile(r"\d+:\d+").search(word)
+                                ):
+                                    # This word is the end of the ref field
+                                    current_card.ref += " " + word
+
+                                    # Next part is extra_info
+                                    current_field = "extra_info"
+
                                 elif word.startswith("Club"):
                                     current_field = "club"
-                                    current_card.club = word[len("Club:") :].strip()
+                                    current_card.club = word[len("Club") :].strip()
 
                                 elif word.startswith("Question:"):
                                     current_field = "question"
@@ -89,7 +104,7 @@ def parse_pdf(file_path):
                                     current_card.answer = word[len("Answer:") :].strip()
 
                                 else:
-                                    # Add word to the current field, without leading spaces for the first word
+                                    # Add word to the current field
                                     if current_field == "type":
                                         current_card.card_type += (
                                             " " if current_card.card_type else ""
@@ -97,6 +112,10 @@ def parse_pdf(file_path):
                                     elif current_field == "ref":
                                         current_card.ref += (
                                             " " if current_card.ref else ""
+                                        ) + word
+                                    elif current_field == "extra_info":
+                                        current_card.extra_info += (
+                                            " " if current_card.extra_info else ""
                                         ) + word
                                     elif current_field == "club":
                                         current_card.club += (
@@ -128,7 +147,7 @@ def parse_pdf(file_path):
 def save_to_csv(cards, output_file):
     """Save the list of QuizCards to a CSV file."""
     with open(output_file, mode="w", newline="", encoding="utf-8") as csvfile:
-        fieldnames = ["Type", "Ref", "Club", "Question", "Answer"]
+        fieldnames = ["Type", "Ref", "Extra Info", "Club", "Question", "Answer"]
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames, quoting=csv.QUOTE_ALL)
 
         writer.writeheader()
