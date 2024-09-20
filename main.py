@@ -77,17 +77,27 @@ def parse_pdf(file_path):
                                     current_card.answer = word[len("Answer:") :].strip()
 
                                 else:
-                                    # Add word to the current field
+                                    # Add word to the current field, without leading spaces for the first word
                                     if current_field == "type":
-                                        current_card.card_type += " " + word
+                                        current_card.card_type += (
+                                            " " if current_card.card_type else ""
+                                        ) + word
                                     elif current_field == "ref":
-                                        current_card.ref += " " + word
+                                        current_card.ref += (
+                                            " " if current_card.ref else ""
+                                        ) + word
                                     elif current_field == "club":
-                                        current_card.club += " " + word
+                                        current_card.club += (
+                                            " " if current_card.club else ""
+                                        ) + word
                                     elif current_field == "question":
-                                        current_card.question += " " + word
+                                        current_card.question += (
+                                            " " if current_card.question else ""
+                                        ) + word
                                     elif current_field == "answer":
-                                        current_card.answer += " " + word
+                                        current_card.answer += (
+                                            " " if current_card.answer else ""
+                                        ) + word
 
     # Save the last card
     if (
