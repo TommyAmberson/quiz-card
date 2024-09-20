@@ -1,3 +1,4 @@
+import argparse
 import pdfplumber
 import re
 
@@ -114,7 +115,15 @@ def parse_pdf(file_path):
 
 
 def main():
-    file_path = "/home/amberson/Code/quiz-cards/Practice-Questions-Through-Acts-12.pdf"
+    # Set up the argument parser
+    parser = argparse.ArgumentParser(description="Parse quiz cards from a PDF file.")
+    parser.add_argument("--in_file", "-i", required=True, help="Input PDF file path")
+    args = parser.parse_args()
+
+    # Get the file path from the command-line arguments
+    file_path = args.in_file
+
+    # Parse the PDF and print the cards
     cards = parse_pdf(file_path)
 
     for card in cards:
