@@ -2,6 +2,7 @@ import argparse
 import csv
 import pdfplumber
 import re
+import os
 
 
 class QuizCard:
@@ -216,30 +217,72 @@ def save_to_csv(cards, output_file):
             writer.writerow(card.to_dict())
 
 
+def save_to_pdf(cards, output_file):
+    """
+    TODO: Save the list of QuizCards to a reformatted PDF file.
+
+    Args:
+        cards (list): The list of QuizCard objects to be written to the PDF file.
+        output_file (str): The path to the output PDF file.
+    """
+    # Placeholder for future implementation of PDF formatting
+    print("TODO: Implement PDF output")
+
+
+def check_output_extension(output_file, output_type):
+    """
+    Checks if the file extension matches the selected output type.
+
+    Args:
+        output_file (str): The output file path.
+        output_type (str): The selected output type ('csv' or 'pdf').
+
+    Raises:
+        ValueError: If the file extension doesn't match the output type.
+    """
+    ext = os.path.splitext(output_file)[1].lower()
+    if output_type == "csv" and ext != ".csv":
+        raise ValueError(
+            f"Output file extension '{ext}' does not match the output type 'csv'."
+        )
+    elif output_type == "pdf" and ext != ".pdf":
+        raise ValueError(
+            f"Output file extension '{ext}' does not match the output type 'pdf'."
+        )
+
+
 def main():
     """
-    Main function to parse a PDF file and save the extracted quiz cards to a CSV.
+    Main function to parse a PDF file and save the extracted quiz cards to a CSV or PDF.
 
-    This function handles the command-line arguments for input and output file paths.
-    It uses the parse_pdf() function to extract quiz cards from the PDF and
-    save_to_csv() to write them to a CSV file.
+    This function handles the command-line arguments for input and output file paths,
+    and allows the user to select the output type (csv or pdf).
     """
     parser = argparse.ArgumentParser(description="Parse quiz cards from a PDF file.")
     parser.add_argument("--in_file", "-i", required=True, help="Input PDF file path")
-    parser.add_argument("--out_file", "-o", required=True, help="Output CSV file path")
+    parser.add_argument("--out_file", "-o", required=True, help="Output file path")
+    parser.add_argument(
+        "--output_type",
+        "-t",
+        default="csv",
+        choices=["csv", "pdf"],
+        help="Specify the output format (csv or pdf). Default is csv.",
+    )
     args = parser.parse_args()
 
-    # Get the input and output file paths from command-line arguments
-    input_file = args.in_file
-    output_file = args.out_file
+    # Check if the output file has the correct extension
+    check_output_extension(args.out_file, args.output_type)
 
     # Parse the PDF file to extract quiz cards
-    cards = parse_pdf(input_file)
+    cards = parse_pdf(args.in_file)
 
-    # Save the parsed quiz cards to a CSV file
-    save_to_csv(cards, output_file)
+    # Save the output based on the selected format
+    if args.output_type == "csv":
+        save_to_csv(cards, args.out_file)
+    elif args.output_type == "pdf":
+        save_to_pdf(cards, args.out_file)
 
-    print(f"Saved {len(cards)} quiz cards to {output_file}")
+    print(f"Saved quiz cards to {args.out_file} as {args.output_type.upper()}")
 
 
 if __name__ == "__main__":
