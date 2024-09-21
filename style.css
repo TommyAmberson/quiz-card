@@ -1,6 +1,7 @@
 .wrapper {
     display: grid;
-    grid-template-columns: auto auto;
+    grid-auto-rows: 1fr;
+    grid-template-columns: repeat(2, 1fr);
 }
 
 div {
@@ -11,4 +12,23 @@ div {
     padding: 10px;
     border-style: dotted;
     border-width: 1px;
+    overflow: wrap;
+}
+
+.info {
+    width: 100%;
+    display: flex;
+}
+
+.type {
+    text-align: left;
+    flex: 1;
+}
+.club {
+    text-align: center;
+    flex: 1;
+}
+.ref {
+    text-align: right;
+    flex: 1;
 }

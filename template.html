@@ -1,9 +1,13 @@
 <div class="column">
-    <p style="text-align: center">
-        <span style="float: left">{{Type}}</span>
-        <span>&nbsp;{{Club}}&nbsp;</span>
-        <span style="float: right">{{Ref}}</span>
-    </p>
-    <p><b>Q: </b> {{Question}}</p>
-    <p><b>A: </b> {{Answer}}</p>
+    <div class="info">
+        <div class="type">{{Type}}<br>{{ExtraInfo}}</div>
+        <div class="club">&nbsp;{{Club}}&nbsp;</div>
+        <div class="ref">{{Ref}}</div>
+    </div>
+    <div class="question">
+        <p><b>Q: </b> {{Question}}</p>
+    </div>
+    <div class="answer">
+        <p><b>A: </b> {{Answer}}</p>
+    </div>
 </div>

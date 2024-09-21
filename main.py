@@ -1,8 +1,8 @@
 from jinja2 import Environment, FileSystemLoader
+from weasyprint import HTML, CSS
 import argparse
 import csv
 import os
-import pdfkit
 import pdfplumber
 import re
 
@@ -51,7 +51,7 @@ class QuizCard:
         return (
             f"Type: {self.card_type}\n"
             f"Ref: {self.ref}\n"
-            f"Extra Info: {self.extra_info}\n"
+            f"ExtraInfo: {self.extra_info}\n"
             f"Club: {self.club}\n"
             f"Q: {self.question}\n"
             f"A: {self.answer}\n"
@@ -67,7 +67,7 @@ class QuizCard:
         return {
             "Type": self.card_type.strip(),
             "Ref": self.ref.strip(),
-            "Extra Info": self.extra_info.strip(),
+            "ExtraInfo": self.extra_info.strip(),
             "Club": self.club.strip(),
             "Question": self.question.strip(),
             "Answer": self.answer.strip(),
@@ -208,7 +208,7 @@ def save_to_csv(cards, output_file):
     """
     with open(output_file, mode="w", newline="", encoding="utf-8") as csvfile:
         # Define the fieldnames for the CSV columns
-        fieldnames = ["Type", "Ref", "Extra Info", "Club", "Question", "Answer"]
+        fieldnames = ["Type", "Ref", "ExtraInfo", "Club", "Question", "Answer"]
         # Create a CSV DictWriter object to write dictionaries to the CSV
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames, quoting=csv.QUOTE_ALL)
 
@@ -240,24 +240,11 @@ def save_to_pdf(cards, output_file):
     print("------------------ HTML String ------------------")
     print(html_string)
 
-    options = {
-        "page-size": "A4",
-        "margin-top": "0.75in",
-        "margin-right": "0.75in",
-        "margin-bottom": "0.75in",
-        "margin-left": "0.75in",
-        "encoding": "UTF-8",
-        "enable-local-file-access": None,
-        "no-outline": None,
-    }
-
+    print("\n------------ Converting text to HTML -------------")
+    html = HTML(string=html_string)
+    css = CSS(filename="style.css")
     print("\n------------ Converting HTML to PDF -------------")
-    pdfkit.from_string(
-        html_string,
-        output_file,
-        options=options,
-        css="style.css",
-    )
+    html.write_pdf(output_file, stylesheets=[css])
 
 
 def check_output_extension(output_file, output_type):
