@@ -232,7 +232,7 @@ def save_to_pdf(cards, output_file):
 
     html_string = ""
     for card in cards:
-        template_vars = {"body": card.card_type}
+        template_vars = card.to_dict()
         html_string += template.render(template_vars)
 
     print("------------------ HTML String ------------------")
