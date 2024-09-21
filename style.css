@@ -1,22 +1,14 @@
 .wrapper {
+    display: grid;
+    grid-template-columns: auto auto;
 }
 
-.row {
-    display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
-    width: 100%;
-    flex: 1;
+div {
     break-inside: avoid-page;
 }
 
 .column {
-    display: flex;
-    flex-direction: column;
-    flex-basis: 100%;
-    flex: 1;
     padding: 10px;
-    break-inside: avoid-page;
     border-style: dotted;
     border-width: 1px;
 }
