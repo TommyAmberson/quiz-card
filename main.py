@@ -230,10 +230,23 @@ def save_to_pdf(cards, output_file):
     env = Environment(loader=FileSystemLoader("."))
     template = env.get_template("template.html")
 
-    html_string = ""
+    html_string = "<div class='wrapper'>"
+    left = True
     for card in cards:
+        if left:
+            html_string += '<div class="row">'
+
         template_vars = card.to_dict()
         html_string += template.render(template_vars)
+
+        if not left:
+            html_string += "</div>"
+
+        left = not left
+
+    if not left:
+        html_string += "</div>"
+    html_string += "</div>"
 
     print("------------------ HTML String ------------------")
     print(html_string)
@@ -254,6 +267,7 @@ def save_to_pdf(cards, output_file):
         html_string,
         output_file,
         options=options,
+        css="style.css",
     )
 
 
